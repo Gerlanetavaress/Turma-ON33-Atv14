@@ -1,0 +1,37 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+orders = pd.read_csv('olist_customers_dataset.csv')
+products = pd.read_csv('olist_customers_dataset.csv')
+reviews = pd.read_csv('olist_customers_dataset.csv')
+
+orders.isnull().sum()
+products.isnull().sum()
+reviews.isnull().sum()
+
+sales_by_category = orders.merge(products, on='product_id').groupby('product_category_name')['order_id'].count()
+sales_by_category.plot(kind='bar')
+plt.title('Distribuição de Vendas por Categoria')
+plt.xlabel('Categoria de Produto')
+plt.ylabel('Número de Vendas')
+plt.show()
+
+satisfaction_by_category = reviews.merge(orders, on='order_id').merge(products, on='product_id').groupby('product_category_name')['review_score'].mean()
+satisfaction_by_category.plot(kind='bar')
+plt.title('Notas de Satisfação por Categoria de Produto')
+plt.xlabel('Categoria de Produto')
+plt.ylabel('Nota Média')
+plt.show()
+
+orders['delivery_time'] = (pd.to_datetime(orders['delivery_date']) - pd.to_datetime(orders['order_delivered_at'])).dt.days
+delivery_satisfaction = reviews.merge(orders, on='order_id')[['delivery_time', 'review_score']]
+sns.scatterplot(x='delivery_time', y='review_score', data=delivery_satisfaction)
+plt.title('Correlação entre Tempo de Entrega e Satisfação do Cliente')
+plt.xlabel('Tempo de Entrega (dias)')
+plt.ylabel('Nota de Satisfação')
+plt.show()
+
+final_data = orders.merge(products, on='product_id').merge(reviews, on='order_id')
+final_data.to_csv('base_final.csv', index=False)
